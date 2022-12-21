@@ -28,7 +28,7 @@ func (n Response) AbsoluteURL(path string) string {
 	if strings.HasPrefix(path, "#") {
 		return ""
 	}
-	if !n.validatePath(path) {
+	if !n.validatePath(path) { //过滤后缀
 		return ""
 	}
 	absURL, err := n.Resp.Request.URL.Parse(path)

@@ -3,8 +3,8 @@ package standard
 import (
 	"bytes"
 	"context"
+	"github.com/projectdiscovery/retryablehttp-go"
 	"io"
-	"net/http"
 	"net/url"
 	"sync/atomic"
 	"time"
@@ -21,6 +21,7 @@ import (
 	"github.com/projectdiscovery/katana/pkg/utils"
 	"github.com/projectdiscovery/katana/pkg/utils/queue"
 	"github.com/remeh/sizedwaitgroup"
+	"net/http"
 )
 
 // Crawler is a standard crawler instance
@@ -28,6 +29,8 @@ type Crawler struct {
 	headers    map[string]string
 	knownFiles *files.KnownFiles
 	options    *types.CrawlerOptions
+	httpclient *retryablehttp.Client
+	ctx        context.Context
 }
 
 // New returns a new standard crawler instance
@@ -59,7 +62,7 @@ func (c *Crawler) Crawl(rootURL string) error {
 	}
 	hostname := parsed.Hostname()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background()) //取消？
 	if c.options.Options.CrawlDuration > 0 {
 		ctx, cancel = context.WithTimeout(ctx, time.Duration(c.options.Options.CrawlDuration)*time.Second)
 	}
@@ -87,7 +90,7 @@ func (c *Crawler) Crawl(rootURL string) error {
 
 	wg := sizedwaitgroup.New(c.options.Options.Concurrency)
 	running := int32(0)
-	for {
+	for { //等待爬取的队列
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return ctxErr
 		}
@@ -116,7 +119,9 @@ func (c *Crawler) Crawl(rootURL string) error {
 			if c.options.Options.Delay > 0 {
 				time.Sleep(time.Duration(c.options.Options.Delay) * time.Second)
 			}
-			resp, err := c.makeRequest(ctx, req, hostname, req.Depth, httpclient)
+			resp, err := c.makeRequest(ctx, req, hostname, req.Depth, httpclient) //发送请求
+			c.ctx = ctx
+			c.httpclient = httpclient
 			if err != nil {
 				gologger.Warning().Msgf("Could not request seed URL: %s\n", err)
 				return
@@ -147,6 +152,18 @@ func (c *Crawler) makeParseResponseCallback(queue *queue.VarietyQueue) func(nr n
 			return
 		}
 
+		resp, err := c.getRequest(c.ctx, nr, nr.RootHostname, 1, c.httpclient)
+		if err != nil {
+			gologger.Warning().Msgf("Could not request seed URL: %s\n", err)
+			return
+		}
+		if resp.Resp == nil || resp.Reader == nil {
+			return
+		}
+
+		bodylen := len(resp.Body)
+		status := resp.Resp.Status
+
 		// Write the found result to output
 		result := &output.Result{
 			Timestamp: time.Now(),
@@ -155,6 +172,8 @@ func (c *Crawler) makeParseResponseCallback(queue *queue.VarietyQueue) func(nr n
 			Source:    nr.Source,
 			Tag:       nr.Tag,
 			Attribute: nr.Attribute,
+			Status:    status,
+			Len:       bodylen,
 		}
 		if nr.Method != http.MethodGet {
 			result.Method = nr.Method

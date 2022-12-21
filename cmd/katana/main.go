@@ -50,7 +50,6 @@ func main() {
 	if err := runner.ExecuteCrawling(); err != nil {
 		gologger.Fatal().Msgf("could not execute crawling: %s", err)
 	}
-
 }
 
 func readFlags() error {
@@ -64,7 +63,7 @@ pipelines offering both headless and non-headless crawling.`)
 
 	flagSet.CreateGroup("config", "Configuration",
 		flagSet.IntVarP(&options.MaxDepth, "depth", "d", 2, "maximum depth to crawl"),
-		flagSet.BoolVarP(&options.ScrapeJSResponses, "js-crawl", "jc", false, "enable endpoint parsing / crawling in javascript file"),
+		flagSet.BoolVarP(&options.ScrapeJSResponses, "js-crawl", "jc", true, "enable endpoint parsing / crawling in javascript file"),
 		flagSet.IntVarP(&options.CrawlDuration, "crawl-duration", "ct", 0, "maximum duration to crawl the target for"),
 		flagSet.StringVarP(&options.KnownFiles, "known-files", "kf", "", "enable crawling of known files (all,robotstxt,sitemapxml)"),
 		flagSet.IntVarP(&options.BodyReadSize, "max-response-size", "mrs", 2*1024*1024, "maximum response size to read"),

@@ -618,6 +618,6 @@ func bodyScrapeEndpointsParser(resp navigation.Response, callback func(navigatio
 
 	endpoints := utils.ExtractBodyEndpoints(string(resp.Body))
 	for _, item := range endpoints {
-		callback(navigation.NewNavigationRequestURLFromResponse(item, resp.Resp.Request.URL.String(), "html", "regex", resp))
+		callback(navigation.NewNavigationRequestURLFromResponse(item, resp.Resp.Request.URL.String(), "html", "regex", resp)) //相对路径处理为绝对路径
 	}
 }

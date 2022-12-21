@@ -18,6 +18,10 @@ func (w *StandardWriter) formatScreen(output *Result) ([]byte, error) {
 		builder.WriteString(w.aurora.Blue(output.Tag).String())
 		builder.WriteRune(']')
 		builder.WriteRune(' ')
+		builder.WriteRune('[')
+		builder.WriteString(w.aurora.Green(output.Status).String())
+		builder.WriteRune(']')
+		builder.WriteRune(' ')
 	}
 	if output.Method != "" && w.verbose {
 		builder.WriteRune('[')
@@ -26,6 +30,19 @@ func (w *StandardWriter) formatScreen(output *Result) ([]byte, error) {
 		builder.WriteRune(' ')
 	}
 	builder.WriteString(output.URL)
+	if w.verbose {
+		builder.WriteRune(' ')
+		builder.WriteRune('[')
+		builder.WriteString(w.aurora.Blue("bodylen").String())
+		builder.WriteString(":")
+		builder.WriteString(w.aurora.Blue(output.Len).String())
+		builder.WriteRune(']')
+		builder.WriteString(" [")
+		builder.WriteString(w.aurora.Blue("Source").String())
+		builder.WriteString(":")
+		builder.WriteString(output.Source)
+		builder.WriteRune(']')
+	}
 
 	if output.Body != "" && w.verbose {
 		builder.WriteRune(' ')

@@ -59,6 +59,10 @@ type Result struct {
 	Tag string `json:"tag,omitempty"`
 	// Attribute is the attribute for the result
 	Attribute string `json:"attribute,omitempty"`
+	//Len is the Len for the body
+	Len int `json:"len,omitempty"`
+	//Status is the for the request
+	Status string `json:"status,omitempty"`
 }
 
 const storeFieldsDirectory = "katana_output"

@@ -38,6 +38,6 @@ func (n *Request) RequestURL() string {
 
 // newNavigationRequestURL generates a navigation request from a relative URL
 func NewNavigationRequestURLFromResponse(path, source, tag, attribute string, resp Response) Request {
-	requestURL := resp.AbsoluteURL(path)
+	requestURL := resp.AbsoluteURL(path) //通过相对路径生成绝对路径
 	return Request{Method: "GET", URL: requestURL, RootHostname: resp.RootHostname, Depth: resp.Depth, Source: source, Attribute: attribute, Tag: tag}
 }
